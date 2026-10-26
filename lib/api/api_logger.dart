@@ -59,7 +59,26 @@ class ApiLogger {
           ' (${elapsed.inMilliseconds} ms)',
       'Message: ${exception.message}',
       if (exception.data != null) 'Data: ${_format(exception.data)}',
+      ..._parseDiagnostics(exception),
     ]);
+  }
+
+  /// Debug mode only (see [ApiException.parseDetails]).
+  List<String> _parseDiagnostics(ApiException exception) {
+    final details = exception.parseDetails;
+    if (details == null) return const [];
+    return [
+      'Original error: ${details.error.runtimeType}: ${details.error}',
+      if (details.hasLocation)
+        'Source: ${details.file}:${details.line}'
+            '${details.column == null ? '' : ':${details.column}'}'
+            '${details.member == null ? '' : ' (${details.member})'}',
+      if (details.jsonPath != null)
+        'JSON path: ${details.jsonPath} (${details.fieldValueType})',
+      // Full trace, untruncated, so nothing is hidden when the location
+      // could not be pinned down.
+      'Stack trace:\n${details.stackTrace}'.trimRight(),
+    ];
   }
 
   void _print(String title, List<String> lines) {

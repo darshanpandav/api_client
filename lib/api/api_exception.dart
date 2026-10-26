@@ -1,3 +1,5 @@
+import 'package:mood_app/api/parse_diagnostics.dart';
+
 enum ApiErrorType {
   /// No connection, DNS failure, connection refused, bad certificate.
   network,
@@ -36,6 +38,7 @@ class ApiException implements Exception {
     this.data,
     this.error,
     this.stackTrace,
+    this.parseDetails,
   });
 
   /// Builds an exception from a non-2xx response.
@@ -60,6 +63,8 @@ class ApiException implements Exception {
   /// Underlying error (DioException, ClientException, TimeoutException, ...).
   final Object? error;
   final StackTrace? stackTrace;
+
+  final ParseErrorDetails? parseDetails;
 
   bool get isNetworkError =>
       type == ApiErrorType.network || type == ApiErrorType.timeout;

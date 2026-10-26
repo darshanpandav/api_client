@@ -6,6 +6,7 @@ import 'api_config.dart';
 import 'api_exception.dart';
 import 'api_file.dart';
 import 'api_logger.dart';
+import 'parse_diagnostics.dart';
 
 enum HttpMethod {
   get,
@@ -352,17 +353,31 @@ abstract class ApiClient {
     try {
       return parser != null ? parser(response.data) : response.data as T;
     } catch (e, st) {
-      throw _fail(
-        request,
-        stopwatch,
-        ApiException(
-          type: ApiErrorType.parse,
-          message: 'Failed to parse response: $e',
-          statusCode: response.statusCode,
-          data: response.data,
-          error: e,
-          stackTrace: st,
+      final details = kDebugMode
+          ? ParseErrorDetails.analyze(
+              error: e,
+              stackTrace: st,
+              data: response.data,
+              rerun: parser,
+            )
+          : null;
+      // Rethrown with the parser's stack trace, so unhandled errors point at
+      // the model code instead of this method.
+      Error.throwWithStackTrace(
+        _fail(
+          request,
+          stopwatch,
+          ApiException(
+            type: ApiErrorType.parse,
+            message: details?.message ?? 'Failed to parse response: $e',
+            statusCode: response.statusCode,
+            data: response.data,
+            error: e,
+            stackTrace: st,
+            parseDetails: details,
+          ),
         ),
+        st,
       );
     }
   }

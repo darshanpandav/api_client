@@ -58,6 +58,21 @@ try {
 }
 ```
 
+### Parse errors (debug mode)
+
+When a `parser` throws, the message names the model source line and JSON field,
+taken from the parser's stack trace and a debug-only re-run of the parser on a
+copy of the response that records which keys are read:
+
+```
+ApiException(parse 200): Type mismatch in Product_model.dart:86 (Products.fromJson) — field "price" (JSON path: products[1].price) expected double?, but received int. Check the model field and JSON parsing logic.
+```
+
+`e.parseDetails` holds the same data as fields, `e.error` and `e.stackTrace` are
+the original error and trace, and the logger prints the full stack trace. If the
+location or field can't be found, the message says so and you get the full stack
+trace. Release builds keep the plain `Failed to parse response: …` message.
+
 ## Files and other data types
 
 | `body` value | Sent as |
